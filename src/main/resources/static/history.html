@@ -1,0 +1,115 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My History | Study Balance</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="history-page">
+
+    <div class="dashboard-layout">
+
+        <!-- Sidebar -->
+        <aside class="dashboard-sidebar">
+            <a href="index.html" class="dashboard-logo">
+                Study<span>Balance</span>
+            </a>
+
+            <p class="sidebar-heading">MENU</p>
+
+            <nav class="dashboard-nav">
+                <a href="dashboard.html">Dashboard</a>
+                <a href="daily-entry.html">Daily Entry</a>
+                <a href="history.html" class="active">My History</a>
+                <a href="weekly-insights.html">Weekly Insights</a>
+            </nav>
+
+            <div class="sidebar-bottom">
+                <a href="index.html">Back to Home</a>
+                <a href="login.html">Logout</a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="dashboard-main">
+
+            <header class="history-header">
+                <p class="dashboard-date" id="historyDate"></p>
+                <h1>My Activity History</h1>
+                <p>Review your previous daily activity records.</p>
+            </header>
+
+            <!-- Summary -->
+            <section class="history-summary">
+                <div class="history-summary-card">
+                    <span>Total Records</span>
+                    <h2 id="totalRecords">0</h2>
+                </div>
+
+                <div class="history-summary-card">
+                    <span>Total Study Hours</span>
+                    <h2 id="totalStudyHours">0</h2>
+                </div>
+
+                <div class="history-summary-card">
+                    <span>Average Sleep</span>
+                    <h2 id="averageSleep">0</h2>
+                </div>
+            </section>
+
+            <!-- Records -->
+            <section class="history-records-section">
+
+                <div class="history-records-heading">
+                    <div>
+                        <h2>Daily Records</h2>
+                        <p>Your saved activity information appears here.</p>
+                    </div>
+
+                    <a href="daily-entry.html" class="history-add-button">
+                        + Add Entry
+                    </a>
+                </div>
+
+                <div class="history-table-wrapper">
+                    <table class="history-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Study</th>
+                                <th>Sleep</th>
+                                <th>Activity</th>
+                                <th>Screen Time</th>
+                                <th>Mood</th>
+                                <th>Notes</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="historyTableBody">
+                            <!-- Records are added using JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div id="emptyHistory" class="empty-history" hidden>
+                    <div>📅</div>
+                    <h3>No Records Yet</h3>
+                    <p>You have not saved any daily entries.</p>
+                    <a href="daily-entry.html">Add Your First Entry</a>
+                </div>
+
+            </section>
+
+            <footer class="dashboard-footer">
+                <p>© 2026 Study Balance. Study well, live well.</p>
+            </footer>
+
+        </main>
+    </div>
+
+    <script src="js/history.js"></script>
+</body>
+</html>

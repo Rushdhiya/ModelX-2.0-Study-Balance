@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Login | Study Balance</title>
+
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="auth-page">
+
+    <!-- Navigation -->
+    <header class="navbar">
+        <a href="index.html" class="logo">
+            <span class="logo-icon">✦</span>
+            Study<span>Balance</span>
+        </a>
+
+        <a href="index.html" class="back-home">← Back to Home</a>
+    </header>
+
+    <main class="auth-container">
+
+        <!-- Left Information Panel -->
+        <section class="auth-intro">
+            <span class="section-label">WELCOME BACK</span>
+
+            <h1>Continue your journey towards a <span>balanced life.</span></h1>
+
+            <p>
+                Every day is a new opportunity to improve your habits.
+                Log in to review your activities and continue building
+                a healthier student lifestyle.
+            </p>
+
+            <div class="auth-benefits">
+                <div>✓ Review your daily activities</div>
+                <div>✓ Monitor your study progress</div>
+                <div>✓ Build better daily habits</div>
+            </div>
+
+            <div class="auth-decoration">✦</div>
+        </section>
+
+        <!-- Login Form -->
+        <section class="auth-form-section">
+
+            <div class="auth-form-card">
+
+                <div class="auth-heading">
+                    <h2>Welcome Back!</h2>
+                    <p>Enter your account details to continue.</p>
+                </div>
+
+                <form id="loginForm">
+
+                    <div class="form-group">
+                        <label for="email">Email Address</label>
+
+                        <input
+                            type="email"
+                            id="email"
+                            name="email"
+                            placeholder="Enter your email address"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password">Password</label>
+
+                        <div class="password-wrapper">
+                            <input
+                                type="password"
+                                id="password"
+                                name="password"
+                                placeholder="Enter your password"
+                                required
+                            >
+
+                            <button
+                                type="button"
+                                id="togglePassword"
+                                class="password-toggle"
+                            >
+                                Show
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="login-options">
+                        <label class="remember-option">
+                            <input type="checkbox" id="rememberMe">
+                            <span>Remember me</span>
+                        </label>
+
+                        <a href="#" id="forgotPassword">
+                            Forgot Password?
+                        </a>
+                    </div>
+
+                    <div
+                        class="form-message"
+                        id="loginMessage"
+                        role="status"
+                        aria-live="polite"
+                    ></div>
+
+                    <button type="submit" class="auth-submit-btn">
+                        Login →
+                    </button>
+
+                </form>
+
+                <p class="auth-switch">
+                    Don't have an account?
+                    <a href="register.html">Create an account</a>
+                </p>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <footer class="auth-footer">
+        © 2026 Study Balance. All rights reserved.
+    </footer>
+
+    <script src="js/login.js"></script>
+
+</body>
+</html>

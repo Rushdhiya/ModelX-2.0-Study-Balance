@@ -1,0 +1,122 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weekly Insights | Study Balance</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="weekly-insights-page">
+
+    <div class="dashboard-layout">
+
+        <!-- Sidebar -->
+        <aside class="dashboard-sidebar">
+            <a href="index.html" class="dashboard-logo">
+                Study<span>Balance</span>
+            </a>
+
+            <p class="sidebar-heading">MENU</p>
+
+            <nav class="dashboard-nav">
+                <a href="dashboard.html">Dashboard</a>
+                <a href="daily-entry.html">Daily Entry</a>
+                <a href="history.html">My History</a>
+                <a href="weekly-insights.html" class="active">Weekly Insights</a>
+            </nav>
+
+            <div class="sidebar-bottom">
+                <a href="index.html">Back to Home</a>
+                <a href="login.html">Logout</a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="dashboard-main">
+
+            <header class="insights-header">
+                <p class="dashboard-date" id="insightsDate"></p>
+                <h1>Weekly Insights</h1>
+                <p>Understand your habits and track your weekly progress.</p>
+            </header>
+
+            <!-- Weekly Summary -->
+            <section class="insights-summary">
+                <div class="insight-summary-card">
+                    <span>Total Study Time</span>
+                    <h2 id="weeklyStudy">0 hrs</h2>
+                </div>
+
+                <div class="insight-summary-card">
+                    <span>Average Sleep</span>
+                    <h2 id="weeklySleep">0 hrs</h2>
+                </div>
+
+                <div class="insight-summary-card">
+                    <span>Total Physical Activity</span>
+                    <h2 id="weeklyActivity">0 min</h2>
+                </div>
+
+                <div class="insight-summary-card">
+                    <span>Average Screen Time</span>
+                    <h2 id="weeklyScreen">0 hrs</h2>
+                </div>
+            </section>
+
+            <!-- Study Chart -->
+            <section class="insight-chart-card">
+                <h2>📚 Study Hours</h2>
+                <p>Your daily study time during the last seven days.</p>
+                <div class="chart-container">
+                    <canvas id="studyChart"></canvas>
+                </div>
+            </section>
+
+            <!-- Sleep and Screen Charts -->
+            <section class="insight-chart-grid">
+
+                <div class="insight-chart-card">
+                    <h2>😴 Sleep Hours</h2>
+                    <p>Your daily sleeping hours.</p>
+                    <div class="chart-container">
+                        <canvas id="sleepChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="insight-chart-card">
+                    <h2>📱 Screen Time</h2>
+                    <p>Your daily screen usage.</p>
+                    <div class="chart-container">
+                        <canvas id="screenChart"></canvas>
+                    </div>
+                </div>
+
+            </section>
+
+            <!-- Activity Chart -->
+            <section class="insight-chart-card">
+                <h2>🏃 Physical Activity</h2>
+                <p>Your daily physical activity in minutes.</p>
+                <div class="chart-container">
+                    <canvas id="activityChart"></canvas>
+                </div>
+            </section>
+
+            <div id="insightsMessage" class="insights-message" hidden></div>
+
+            <footer class="dashboard-footer">
+                <p>© 2026 Study Balance. Study well, live well.</p>
+            </footer>
+
+        </main>
+    </div>
+
+    <!-- Chart.js Library -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Page JavaScript -->
+    <script src="js/weekly-insights.js"></script>
+
+</body>
+</html>
