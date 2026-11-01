@@ -1,0 +1,137 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Entry | Study Balance</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body class="daily-entry-page">
+
+    <div class="dashboard-layout">
+
+        <!-- Sidebar -->
+        <aside class="dashboard-sidebar">
+            <a href="index.html" class="dashboard-logo">
+                Study<span>Balance</span>
+            </a>
+
+            <p class="sidebar-heading">MENU</p>
+
+            <nav class="dashboard-nav">
+                <a href="dashboard.html">Dashboard</a>
+                <a href="daily-entry.html" class="active">Daily Entry</a>
+                <a href="history.html">My History</a>
+                <a href="weekly-insights.html">Weekly Insights</a>
+            </nav>
+
+            <div class="sidebar-bottom">
+                <a href="index.html">Back to Home</a>
+                <a href="login.html">Logout</a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="dashboard-main">
+
+            <header class="entry-header">
+                <p class="dashboard-date" id="entryDate"></p>
+                <h1>Daily Activity Entry</h1>
+                <p>Record your daily activities and maintain a healthy balance.</p>
+            </header>
+
+            <section class="entry-container">
+
+                <div class="entry-intro">
+                    <h2 id="entryFormTitle">How was your day?</h2>
+                    <p>
+                        Enter your daily information below to keep track
+                        of your study and lifestyle habits.
+                    </p>
+                </div>
+
+                <form id="dailyEntryForm" novalidate>
+
+                    <div class="entry-field">
+                        <label for="recordDate">Date</label>
+                        <input type="date" id="recordDate" required>
+                    </div>
+
+                    <div class="entry-field">
+                        <label for="studyHours">📚 Study Time (Hours)</label>
+                        <input type="number" id="studyHours"
+                            min="0" max="24" step="0.5"
+                            placeholder="Example: 5" required>
+                    </div>
+
+                    <div class="entry-field">
+                        <label for="sleepHours">😴 Sleep Time (Hours)</label>
+                        <input type="number" id="sleepHours"
+                            min="0" max="24" step="0.5"
+                            placeholder="Example: 7" required>
+                    </div>
+
+                    <div class="entry-field">
+                        <label for="activityMinutes">🏃 Physical Activity (Minutes)</label>
+                        <input type="number" id="activityMinutes"
+                            min="0" max="1440"
+                            placeholder="Example: 30" required>
+                    </div>
+
+                    <div class="entry-field">
+                        <label for="screenHours">📱 Screen Time (Hours)</label>
+                        <input type="number" id="screenHours"
+                            min="0" max="24" step="0.5"
+                            placeholder="Example: 2" required>
+                    </div>
+
+                    <div class="entry-field">
+                        <label for="mood">😊 How was your mood today?</label>
+                        <select id="mood" required>
+                            <option value="">Select your mood</option>
+                            <option value="Very Happy">Very Happy</option>
+                            <option value="Happy">Happy</option>
+                            <option value="Normal">Normal</option>
+                            <option value="Stressed">Stressed</option>
+                            <option value="Sad">Sad</option>
+                        </select>
+                    </div>
+
+                    <div class="entry-field">
+                        <label for="notes">Additional Notes (Optional)</label>
+                        <textarea id="notes"
+                            rows="4"
+                            placeholder="Write something about your day..."></textarea>
+                    </div>
+
+                    <div id="entryMessage" class="entry-message"
+                         role="status" aria-live="polite"></div>
+
+                    <div class="entry-buttons">
+                        <button type="submit" class="entry-save-button"
+                                id="saveEntryButton">
+                            Save Daily Entry
+                        </button>
+
+                        <button type="reset" class="entry-reset-button">
+                            Clear Form
+                        </button>
+                    </div>
+
+                </form>
+
+            </section>
+
+            <footer class="dashboard-footer">
+                <p>© 2026 Study Balance. Study well, live well.</p>
+            </footer>
+
+        </main>
+    </div>
+
+    <script src="js/daily-entry.js"></script>
+</body>
+</html>
+```
