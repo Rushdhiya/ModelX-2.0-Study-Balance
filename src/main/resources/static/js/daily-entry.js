@@ -2,7 +2,7 @@
 // Study Balance - Daily Entry
 const API_URL = "/api/activities";
 
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", async function () {
 
     const form = document.getElementById("dailyEntryForm");
     const dateInput = document.getElementById("recordDate");
@@ -58,13 +58,28 @@ document.addEventListener("DOMContentLoaded", function () {
     let editingDate = null;
 
     // Load existing record when editing
-    if (editDate) {
+   if (editId) {
 
-        const entries = getEntries();
+    const response = await fetch("/api/activities");
+    const activities = await response.json();
 
-        const existingEntry = entries.find(
-            entry => entry.date === editDate
-        );
+    const activity = activities.find(
+        item => String(item.id) === String(editId)
+    );
+
+    const existingEntry = activity ? {
+        date: activity.activityDate,
+        studyHours: activity.studyHours,
+        sleepHours: activity.sleepHours,
+        activityMinutes: activity.exerciseMinutes,
+        screenHours: activity.screenTimeHours,
+        mood: ["", "Sad", "Stressed", "Normal", "Happy", "Very Happy"][
+            activity.wellbeingScore
+        ] || "",
+        notes: ""
+    } : null;
+
+
 
         if (existingEntry) {
 
@@ -176,8 +191,10 @@ document.addEventListener("DOMContentLoaded", function () {
 };
 
 try {
-    const response = await fetch(API_URL, {
-        method: "POST",
+        const response = await fetch(
+    editId ? API_URL + "/" + editId : API_URL,
+    {
+        method: editId ? "PUT" : "POST",
         headers: {
             "Content-Type": "application/json"
         },
@@ -198,6 +215,10 @@ try {
 }
 
         // Get previously saved entries
+        if (editId) {
+    showMessage("Daily entry updated successfully!", "success");
+    return;
+}
         let entries = getEntries();
 
         // Find the existing record
