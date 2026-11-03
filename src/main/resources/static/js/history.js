@@ -4,20 +4,47 @@ document.addEventListener("DOMContentLoaded", function () {
     const historyTableBody = document.getElementById("historyTableBody");
     const emptyHistory = document.getElementById("emptyHistory");
 
-    // Get saved entries from localStorage
-    function getEntries() {
-        return JSON.parse(
-            localStorage.getItem("studyBalanceEntries") || "[]"
-        );
+    // Load history records from MySQL
+    async function getEntries() {
+        const response = await fetch("/api/activities");
+
+        if (!response.ok) {
+            throw new Error("Failed to load history");
+        }
+
+        const activities = await response.json();
+
+        return activities.map(activity => ({
+            id: activity.id,
+            date: activity.activityDate,
+            studyHours: activity.studyHours,
+            sleepHours: activity.sleepHours,
+            activityMinutes: activity.exerciseMinutes,
+            screenHours: activity.screenTimeHours,
+            mood: ["", "Sad", "Stressed", "Normal", "Happy", "Very Happy"][
+                activity.wellbeingScore
+            ] || "Not specified",
+            notes: ""
+        }));
     }
 
     // Display all history entries
-    function displayHistory() {
+    async function displayHistory() {
 
-        const entries = getEntries();
+        let entries;
+
+        try {
+            entries = await getEntries();
+        } catch (error) {
+            console.error("History load error:", error);
+            alert("Could not load history from database.");
+            return;
+        }
 
         // Sort entries from newest to oldest
-        entries.sort((a, b) => new Date(b.date) - new Date(a.date));
+        entries.sort((a, b) => {
+            return new Date(b.date || 0) - new Date(a.date || 0);
+        });
 
         // Clear existing table rows
         historyTableBody.innerHTML = "";
@@ -39,22 +66,20 @@ document.addEventListener("DOMContentLoaded", function () {
             const row = document.createElement("tr");
 
             const values = [
-                entry.date,
+                entry.date || "No date",
                 entry.studyHours + " Hours",
                 entry.sleepHours + " Hours",
                 entry.activityMinutes + " Min",
                 entry.screenHours + " Hours",
                 entry.mood || "Not specified",
                 entry.notes || "No notes"
-];
+            ];
 
             // Add normal data cells
             values.forEach(function (value) {
-
                 const cell = document.createElement("td");
                 cell.textContent = value;
                 row.appendChild(cell);
-
             });
 
             // Actions cell
@@ -63,46 +88,47 @@ document.addEventListener("DOMContentLoaded", function () {
 
             // Edit button
             const editButton = document.createElement("button");
-
             editButton.textContent = "Edit";
             editButton.className = "edit-btn";
 
             editButton.addEventListener("click", function () {
-
                 window.location.href =
-                    "daily-entry.html?date=" +
-                    encodeURIComponent(entry.date);
-
+                    "daily-entry.html?id=" +
+                    encodeURIComponent(entry.id);
             });
 
             // Delete button
             const deleteButton = document.createElement("button");
-
             deleteButton.textContent = "Delete";
             deleteButton.className = "delete-btn";
 
-            deleteButton.addEventListener("click", function () {
+            deleteButton.addEventListener("click", async function () {
 
                 const confirmDelete = confirm(
                     "Are you sure you want to delete this daily entry?"
                 );
 
-                if (confirmDelete) {
-
-                    const updatedEntries = getEntries().filter(
-                        item => item.date !== entry.date
-                    );
-
-                    localStorage.setItem(
-                        "studyBalanceEntries",
-                        JSON.stringify(updatedEntries)
-                    );
-
-                    // Refresh history after deletion
-                    displayHistory();
-
+                if (!confirmDelete) {
+                    return;
                 }
 
+                try {
+                    const response = await fetch(
+                        "/api/activities/" + entry.id,
+                        { method: "DELETE" }
+                    );
+
+                    if (!response.ok) {
+                        throw new Error("Delete failed");
+                    }
+
+                    // Refresh history after deletion
+                    await displayHistory();
+
+                } catch (error) {
+                    console.error("Delete error:", error);
+                    alert("Could not delete entry from database.");
+                }
             });
 
             // Add buttons to Actions cell
@@ -113,11 +139,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
             // Add row to table
             historyTableBody.appendChild(row);
-
         });
-
     }
-
 
     // Update summary cards
     function updateSummary(entries) {
@@ -139,13 +162,11 @@ document.addEventListener("DOMContentLoaded", function () {
         document.getElementById("totalRecords").textContent =
             totalRecords;
 
-        // Correct HTML ID: totalStudyHours
         document.getElementById("totalStudyHours").textContent =
             totalStudy.toFixed(1) + " Hours";
 
         document.getElementById("averageSleep").textContent =
             averageSleep.toFixed(1) + " Hours";
-
     }
 
     // Load history when the page opens
