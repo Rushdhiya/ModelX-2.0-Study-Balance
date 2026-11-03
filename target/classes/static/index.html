@@ -1,0 +1,358 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Study Balance</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 650px;
+            margin: 30px auto;
+            padding: 20px;
+            background-color: #f4f7fb;
+            color: #222;
+        }
+
+        h1, h2 {
+            color: #2456a6;
+        }
+
+        .section {
+            background: white;
+            padding: 22px;
+            border-radius: 12px;
+            margin-bottom: 22px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        }
+
+        label {
+            display: block;
+            margin-top: 14px;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+        }
+
+        button {
+            background-color: #2456a6;
+            color: white;
+            padding: 12px 18px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-top: 18px;
+        }
+
+        button:hover {
+            background-color: #173d79;
+        }
+
+        #weeklyReport {
+            margin-top: 18px;
+            line-height: 1.8;
+        }
+
+        .report-item {
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+
+    <h1>Study Balance</h1>
+    <p>Track your daily study and wellness activities.</p>
+
+    <div class="section">
+        <h2>Daily Activity Tracker</h2>
+
+        <form id="activityForm">
+
+            <label for="activityDate">Activity Date:</label>
+            <input type="date" id="activityDate" required>
+
+            <label for="sleepHours">Sleep Hours:</label>
+            <input type="number" id="sleepHours"
+                   min="0" max="24" step="0.5" required>
+
+            <label for="studyHours">Study Hours:</label>
+            <input type="number" id="studyHours"
+                   min="0" max="24" step="0.5" required>
+
+            <label for="exerciseMinutes">Exercise Minutes:</label>
+            <input type="number" id="exerciseMinutes"
+                   min="0" step="1" required>
+
+            <label for="screenTimeHours">Screen Time Hours:</label>
+            <input type="number" id="screenTimeHours"
+                   min="0" max="24" step="0.5" required>
+
+            <label for="wellbeingScore">Wellbeing Score (1-10):</label>
+            <input type="number" id="wellbeingScore"
+                   min="1" max="10" step="1" required>
+
+            <button type="submit">Save Activity</button>
+        </form>
+    </div>
+
+    <div class="section">
+        <h2>📊 Weekly Report</h2>
+        <p>View your averages for the last 7 days.</p>
+
+        <button type="button" onclick="loadWeeklyReport()">
+            View Weekly Report
+        </button>
+
+        <div id="weeklyReport"></div>
+        <h3>📊 Weekly Activity Chart</h3>
+
+        <div style="max-width: 600px;">
+        <canvas id="weeklyChart"></canvas>
+</div>
+    </div>
+
+    <div class="section">
+    <h2>💡 Smart Suggestions</h2>
+    <p>Get personalized tips based on your weekly activity.</p>
+
+    <button type="button" onclick="loadSuggestions()">
+        Get Suggestions
+    </button>
+
+    <div id="suggestions"></div>
+</div>
+
+    <script>
+
+        // SAVE DAILY ACTIVITY
+        document.getElementById("activityForm")
+            .addEventListener("submit", async function(event) {
+
+            event.preventDefault();
+
+            const activity = {
+                activityDate: document.getElementById("activityDate").value,
+                sleepHours: Number(document.getElementById("sleepHours").value),
+                studyHours: Number(document.getElementById("studyHours").value),
+                exerciseMinutes: Number(document.getElementById("exerciseMinutes").value),
+                screenTimeHours: Number(document.getElementById("screenTimeHours").value),
+                wellbeingScore: Number(document.getElementById("wellbeingScore").value)
+            };
+
+            try {
+                const response = await fetch("/api/activities", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(activity)
+                });
+
+                if (!response.ok) {
+                    throw new Error("Failed to save activity");
+                }
+
+                alert("Activity saved successfully!");
+                document.getElementById("activityForm").reset();
+
+            } catch (error) {
+                alert("Error saving activity!");
+                console.error(error);
+            }
+        });
+
+
+        // LOAD WEEKLY REPORT
+        async function loadWeeklyReport() {
+
+            const reportDiv = document.getElementById("weeklyReport");
+
+            reportDiv.textContent = "Loading weekly report...";
+
+            try {
+                const response = await fetch("/api/activities/weekly");
+
+                if (!response.ok) {
+                    throw new Error("Failed to load weekly report");
+                }
+
+                const data = await response.json();
+
+                if (data.totalEntries === 0) {
+                    reportDiv.textContent =
+                        "No activities found for the last 7 days.";
+                    return;
+                }
+
+                reportDiv.innerHTML = `
+                    <div class="report-item">
+                        <strong>Total Entries:</strong> ${data.totalEntries}
+                    </div>
+
+                    <div class="report-item">
+                        <strong>Average Sleep:</strong>
+                        ${data.averageSleep.toFixed(1)} hours
+                    </div>
+
+                    <div class="report-item">
+                        <strong>Average Study:</strong>
+                        ${data.averageStudy.toFixed(1)} hours
+                    </div>
+
+                    <div class="report-item">
+                        <strong>Average Exercise:</strong>
+                        ${data.averageExercise.toFixed(1)} minutes
+                    </div>
+
+                    <div class="report-item">
+                        <strong>Average Screen Time:</strong>
+                        ${data.averageScreenTime.toFixed(1)} hours
+                    </div>
+
+                    <div class="report-item">
+                        <strong>Average Wellbeing:</strong>
+                        ${data.averageWellbeing.toFixed(1)} / 10
+                    </div>
+                `;
+
+                // DISPLAY WEEKLY ACTIVITY CHART
+
+const chartCanvas = document.getElementById("weeklyChart");
+
+if (window.weeklyChartInstance) {
+    window.weeklyChartInstance.destroy();
+}
+
+window.weeklyChartInstance = new Chart(chartCanvas, {
+    type: "bar",
+
+    data: {
+        labels: [
+            "Sleep",
+            "Study",
+            "Exercise",
+            "Screen Time",
+            "Wellbeing"
+        ],
+
+        datasets: [{
+            label: "Weekly Average",
+            data: [
+                data.averageSleep,
+                data.averageStudy,
+                data.averageExercise,
+                data.averageScreenTime,
+                data.averageWellbeing
+            ],
+
+            backgroundColor: [
+                "#4CAF50",
+                "#2196F3",
+                "#FF9800",
+                "#F44336",
+                "#9C27B0"
+            ],
+
+            borderRadius: 6
+        }]
+    },
+
+    options: {
+        responsive: true,
+
+        plugins: {
+            legend: {
+                display: false
+            }
+        },
+
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        }
+    }
+});
+
+            } catch (error) {
+                reportDiv.textContent =
+                    "Error loading weekly report!";
+                console.error(error);
+            }
+        }
+
+        
+async function loadSuggestions() {
+    const suggestionsDiv = document.getElementById("suggestions");
+    suggestionsDiv.textContent = "Loading suggestions...";
+
+    try {
+        const response = await fetch("/api/activities/weekly");
+
+        if (!response.ok) {
+            throw new Error("Failed to load weekly data");
+        }
+
+        const data = await response.json();
+
+        if (data.totalEntries === 0) {
+            suggestionsDiv.textContent =
+                "Add daily activities to get suggestions.";
+            return;
+        }
+
+        const tips = [];
+
+        if (data.averageSleep < 7) {
+            tips.push("😴 Try to sleep at least 7 hours daily.");
+        }
+
+        if (data.averageStudy < 3) {
+            tips.push("📚 Try to maintain a consistent study schedule.");
+        }
+
+        if (data.averageExercise < 30) {
+            tips.push("🏃 Aim for 30 minutes of daily exercise.");
+        }
+
+        if (data.averageScreenTime > 4) {
+            tips.push("📱 Try to reduce unnecessary screen time.");
+        }
+
+        if (data.averageWellbeing < 6) {
+            tips.push("💚 Take breaks and focus on your wellbeing.");
+        }
+
+        if (tips.length === 0) {
+            tips.push("🌟 Great job! Keep maintaining your healthy routine.");
+        }
+
+        suggestionsDiv.replaceChildren();
+
+        tips.forEach(tip => {
+            const paragraph = document.createElement("p");
+            paragraph.textContent = tip;
+            suggestionsDiv.appendChild(paragraph);
+        });
+
+    } catch (error) {
+        suggestionsDiv.textContent = "Error loading suggestions.";
+        console.error(error);
+    }
+}
+
+    </script>
+
+</body>
+</html>
