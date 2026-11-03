@@ -1,7 +1,7 @@
 
 // Study Balance - Weekly Insights
 
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", async function () {
 
     const today = new Date();
 
@@ -15,9 +15,33 @@ document.addEventListener("DOMContentLoaded", function () {
         });
 
     // Get saved daily entries
-    const entries = JSON.parse(
-        localStorage.getItem("studyBalanceEntries") || "[]"
-    );
+    // Get daily entries from MySQL through backend API
+let entries = [];
+
+try {
+    const response = await fetch("/api/activities");
+
+    if (!response.ok) {
+        throw new Error("Failed to load activities");
+    }
+
+    const activities = await response.json();
+
+    entries = activities
+        .filter(activity => activity.activityDate)
+        .map(activity => ({
+            date: activity.activityDate,
+            studyHours: activity.studyHours,
+            sleepHours: activity.sleepHours,
+            activityMinutes: activity.exerciseMinutes,
+            screenHours: activity.screenTimeHours
+        }));
+
+} catch (error) {
+    console.error("Weekly Insights API error:", error);
+    alert("Could not load weekly data from database.");
+    return;
+}
 
     // Prepare the last seven days, including today
     const weekDates = [];
