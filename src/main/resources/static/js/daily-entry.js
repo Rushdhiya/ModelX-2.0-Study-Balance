@@ -1,7 +1,8 @@
 
 // Study Balance - Daily Entry
+const API_URL = "/api/activities";
 
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", async function () {
 
     const form = document.getElementById("dailyEntryForm");
     const dateInput = document.getElementById("recordDate");
@@ -57,13 +58,28 @@ document.addEventListener("DOMContentLoaded", function () {
     let editingDate = null;
 
     // Load existing record when editing
-    if (editDate) {
+   if (editId) {
 
-        const entries = getEntries();
+    const response = await fetch("/api/activities");
+    const activities = await response.json();
 
-        const existingEntry = entries.find(
-            entry => entry.date === editDate
-        );
+    const activity = activities.find(
+        item => String(item.id) === String(editId)
+    );
+
+    const existingEntry = activity ? {
+        date: activity.activityDate,
+        studyHours: activity.studyHours,
+        sleepHours: activity.sleepHours,
+        activityMinutes: activity.exerciseMinutes,
+        screenHours: activity.screenTimeHours,
+        mood: ["", "Sad", "Stressed", "Normal", "Happy", "Very Happy"][
+            activity.wellbeingScore
+        ] || "",
+        notes: ""
+    } : null;
+
+
 
         if (existingEntry) {
 
@@ -117,7 +133,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     // Save or update daily entry
-    form.addEventListener("submit", function (event) {
+    form.addEventListener("submit", async function (event) {
 
         event.preventDefault();
 
@@ -159,7 +175,50 @@ document.addEventListener("DOMContentLoaded", function () {
             notes: document.getElementById("notes").value
         };
 
+        const apiEntry = {
+    activityDate: entry.date,
+    studyHours: entry.studyHours,
+    sleepHours: entry.sleepHours,
+    exerciseMinutes: entry.activityMinutes,
+    screenTimeHours: entry.screenHours,
+    wellbeingScore: {
+        "Very Happy": 5,
+        "Happy": 4,
+        "Normal": 3,
+        "Stressed": 2,
+        "Sad": 1
+    }[entry.mood]
+};
+
+try {
+        const response = await fetch(
+    editId ? API_URL + "/" + editId : API_URL,
+    {
+        method: editId ? "PUT" : "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(apiEntry)
+    });
+
+    if (!response.ok) {
+        throw new Error("Database save failed");
+    }
+
+    const savedData = await response.json();
+    console.log("Saved to MySQL:", savedData);
+
+} catch (error) {
+    console.error("Backend save failed:", error);
+    showMessage("Could not save to database.", "error");
+    return;
+}
+
         // Get previously saved entries
+        if (editId) {
+    showMessage("Daily entry updated successfully!", "success");
+    return;
+}
         let entries = getEntries();
 
         // Find the existing record
