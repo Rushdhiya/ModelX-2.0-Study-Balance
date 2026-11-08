@@ -1,13 +1,8 @@
+
 package com.studybalance.controller;
 
 import java.util.List;
 import java.util.Map;
-
-import com.studybalance.model.User;
-import com.studybalance.repository.UserRepository;
-
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -16,7 +11,16 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.studybalance.model.User;
+import com.studybalance.repository.UserRepository;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -31,6 +35,7 @@ public class AuthController {
         this.userRepository = userRepository;
     }
 
+    // Register a new user
     @PostMapping("/register")
     public ResponseEntity<?> register(
             @RequestBody RegisterRequest request) {
@@ -43,14 +48,20 @@ public class AuthController {
             request.password().length() < 8) {
 
             return ResponseEntity.badRequest()
-                    .body(Map.of("message", "Invalid registration details"));
+                    .body(Map.of(
+                            "message",
+                            "Invalid registration details"
+                    ));
         }
 
         String email = request.email().trim().toLowerCase();
 
         if (userRepository.existsByEmail(email)) {
             return ResponseEntity.badRequest()
-                    .body(Map.of("message", "Email already registered"));
+                    .body(Map.of(
+                            "message",
+                            "Email already registered"
+                    ));
         }
 
         User user = new User();
@@ -73,6 +84,7 @@ public class AuthController {
             String password
     ) {}
 
+    // Login and create an authenticated session
     @PostMapping("/login")
     public ResponseEntity<?> login(
             @RequestBody LoginRequest request,
@@ -84,7 +96,8 @@ public class AuthController {
 
             return ResponseEntity.badRequest()
                     .body(Map.of(
-                            "message", "Email and password required"
+                            "message",
+                            "Email and password required"
                     ));
         }
 
@@ -117,6 +130,14 @@ public class AuthController {
                     var repository =
                             new HttpSessionSecurityContextRepository();
 
+                    // Prevent session fixation:
+                    // rotate the session ID after successful login
+                    if (httpRequest.getSession(false) != null) {
+                        httpRequest.changeSessionId();
+                    } else {
+                        httpRequest.getSession(true);
+                    }
+
                     repository.saveContext(
                             context,
                             httpRequest,
@@ -142,18 +163,21 @@ public class AuthController {
             String password
     ) {}
 
+    // Logout and invalidate the session
     @PostMapping("/logout")
-public ResponseEntity<?> logout(HttpServletRequest request) {
-    var session = request.getSession(false);
+    public ResponseEntity<?> logout(
+            HttpServletRequest request) {
 
-    if (session != null) {
-        session.invalidate();
+        var session = request.getSession(false);
+
+        if (session != null) {
+            session.invalidate();
+        }
+
+        SecurityContextHolder.clearContext();
+
+        return ResponseEntity.ok(
+                Map.of("message", "Logout successful")
+        );
     }
-
-    SecurityContextHolder.clearContext();
-
-    return ResponseEntity.ok(
-        Map.of("message", "Logout successful")
-    );
-}
 }

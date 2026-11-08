@@ -1,286 +1,343 @@
 
-// Study Balance - Daily Entry
-const API_URL = "/api/activities";
+"use strict";
 
-document.addEventListener("DOMContentLoaded", async function () {
+document.addEventListener("DOMContentLoaded", async () => {
+    const API_URL = "/api/activities";
 
     const form = document.getElementById("dailyEntryForm");
     const dateInput = document.getElementById("recordDate");
     const dateDisplay = document.getElementById("entryDate");
     const message = document.getElementById("entryMessage");
 
-    // Get today's date in YYYY-MM-DD format
-    const today = new Date();
+    if (!form || !dateInput || !message) {
+        console.error("Daily Entry HTML elements missing.");
+        return;
+    }
 
+    const getField = (id) => document.getElementById(id);
+
+    const params = new URLSearchParams(window.location.search);
+    const editId = params.get("id");
+    const isEditMode = Boolean(editId);
+
+    const submitButton = form.querySelector(
+        'button[type="submit"], input[type="submit"]'
+    );
+
+    function setButtonText(text) {
+        if (!submitButton) return;
+
+        if (submitButton.tagName === "INPUT") {
+            submitButton.value = text;
+        } else {
+            submitButton.textContent = text;
+        }
+    }
+
+    setButtonText(isEditMode ? "Update Entry" : "Save Entry");
+
+    // Prevent Enter key from automatically submitting the form
+    form.addEventListener("keydown", (event) => {
+        if (
+            event.key === "Enter" &&
+            event.target.tagName !== "TEXTAREA"
+        ) {
+            event.preventDefault();
+        }
+    });
+
+    const today = new Date();
     const localDate = new Date(
         today.getTime() - today.getTimezoneOffset() * 60000
     ).toISOString().split("T")[0];
 
-    // Display today's date
-    dateDisplay.textContent = today.toLocaleDateString("en-US", {
-        weekday: "long",
-        year: "numeric",
-        month: "long",
-        day: "numeric"
-    });
-
-    // Set the default date
     dateInput.value = localDate;
-
-    // Prevent selecting a future date
     dateInput.max = localDate;
 
-    // Get saved entries from localStorage
-    function getEntries() {
-        return JSON.parse(
-            localStorage.getItem("studyBalanceEntries") || "[]"
-        );
+    if (dateDisplay) {
+        dateDisplay.textContent = today.toLocaleDateString("en-US", {
+            weekday: "long",
+            year: "numeric",
+            month: "long",
+            day: "numeric"
+        });
     }
 
-    // Save entries to localStorage
-    function saveEntries(entries) {
-        localStorage.setItem(
-            "studyBalanceEntries",
-            JSON.stringify(entries)
-        );
-    }
-
-    // Display messages
     function showMessage(text, type) {
         message.textContent = text;
         message.className = "entry-message " + type;
     }
 
-    // Check whether the page was opened using Edit from My History
-    const urlParams = new URLSearchParams(window.location.search);
-    const editDate = urlParams.get("date");
+    function setField(id, value) {
+        const field = getField(id);
+        if (field) field.value = value ?? "";
+    }
 
-    let editingDate = null;
+    function readNumber(id) {
+        const field = getField(id);
 
-    // Load existing record when editing
-   if (editId) {
+        if (!field || field.value.trim() === "") {
+            return NaN;
+        }
 
-    const response = await fetch("/api/activities");
-    const activities = await response.json();
+        return Number(field.value);
+    }
 
-    const activity = activities.find(
-        item => String(item.id) === String(editId)
-    );
+    const moodToScore = {
+        "Sad": 1,
+        "Stressed": 2,
+        "Normal": 3,
+        "Happy": 4,
+        "Very Happy": 5
+    };
 
-    const existingEntry = activity ? {
-        date: activity.activityDate,
-        studyHours: activity.studyHours,
-        sleepHours: activity.sleepHours,
-        activityMinutes: activity.exerciseMinutes,
-        screenHours: activity.screenTimeHours,
-        mood: ["", "Sad", "Stressed", "Normal", "Happy", "Very Happy"][
-            activity.wellbeingScore
-        ] || "",
-        notes: ""
-    } : null;
+    const scoreToMood = {
+        1: "Sad",
+        2: "Stressed",
+        3: "Normal",
+        4: "Happy",
+        5: "Very Happy"
+    };
 
+    // LOAD EXISTING ENTRY
+    if (isEditMode) {
+        try {
+            const response = await fetch(API_URL, {
+                credentials: "same-origin"
+            });
 
+            if (!response.ok) {
+                throw new Error("HTTP " + response.status);
+            }
 
-        if (existingEntry) {
+            const activities = await response.json();
 
-            editingDate = existingEntry.date;
+            const activity = activities.find(
+                item => String(item.id) === String(editId)
+            );
 
-            // Fill the form with previously saved information
-            dateInput.value = existingEntry.date;
+            if (!activity) {
+                showMessage("Entry not found.", "error");
 
-            document.getElementById("studyHours").value =
-                existingEntry.studyHours;
+                if (submitButton) {
+                    submitButton.disabled = true;
+                }
 
-            document.getElementById("sleepHours").value =
-                existingEntry.sleepHours;
+                return;
+            }
 
-            document.getElementById("activityMinutes").value =
-                existingEntry.activityMinutes;
+            dateInput.value = activity.activityDate;
 
-            document.getElementById("screenHours").value =
-                existingEntry.screenHours;
+            setField("studyHours", activity.studyHours);
+            setField("sleepHours", activity.sleepHours);
+            setField("activityMinutes", activity.exerciseMinutes);
+            setField("screenHours", activity.screenTimeHours);
 
-            document.getElementById("mood").value =
-                existingEntry.mood || "";
+            setField(
+                "mood",
+                scoreToMood[activity.wellbeingScore] || ""
+            );
 
-            document.getElementById("notes").value =
-                existingEntry.notes || "";
+            setField("notes", activity.notes || "");
 
-            // Change the heading when editing
-            const heading = document.querySelector(".entry-intro h2");
+            const heading = document.querySelector(
+                ".entry-intro h2"
+            );
 
             if (heading) {
                 heading.textContent = "Edit Your Daily Entry";
             }
 
-            // Change the button text
-            const saveButton = form.querySelector(
-                ".entry-save-button"
+            setButtonText("Update Entry");
+
+        } catch (error) {
+            console.error("Entry load failed:", error);
+
+            showMessage(
+                "Could not load entry: " + error.message,
+                "error"
             );
 
-            if (saveButton) {
-                saveButton.textContent = "Update Daily Entry";
+            if (submitButton) {
+                submitButton.disabled = true;
             }
-
-        } else {
-
-            showMessage(
-                "The selected daily entry could not be found.",
-                "error"
-            );
-
-        }
-    }
-
-    // Save or update daily entry
-    form.addEventListener("submit", async function (event) {
-
-        event.preventDefault();
-
-        const studyHours = Number(
-            document.getElementById("studyHours").value
-        );
-
-        const sleepHours = Number(
-            document.getElementById("sleepHours").value
-        );
-
-        const activityMinutes = Number(
-            document.getElementById("activityMinutes").value
-        );
-
-        const screenHours = Number(
-            document.getElementById("screenHours").value
-        );
-
-        // Check total hours
-        if (studyHours + sleepHours + screenHours > 24) {
-
-            showMessage(
-                "Study time, sleep time and screen time cannot total more than 24 hours.",
-                "error"
-            );
 
             return;
         }
-
-        // Create the entry object
-        const entry = {
-            date: dateInput.value,
-            studyHours: studyHours,
-            sleepHours: sleepHours,
-            activityMinutes: activityMinutes,
-            screenHours: screenHours,
-            mood: document.getElementById("mood").value,
-            notes: document.getElementById("notes").value
-        };
-
-        const apiEntry = {
-    activityDate: entry.date,
-    studyHours: entry.studyHours,
-    sleepHours: entry.sleepHours,
-    exerciseMinutes: entry.activityMinutes,
-    screenTimeHours: entry.screenHours,
-    wellbeingScore: {
-        "Very Happy": 5,
-        "Happy": 4,
-        "Normal": 3,
-        "Stressed": 2,
-        "Sad": 1
-    }[entry.mood]
-};
-
-try {
-        const response = await fetch(
-    editId ? API_URL + "/" + editId : API_URL,
-    {
-        method: editId ? "PUT" : "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify(apiEntry)
-    });
-
-    if (!response.ok) {
-        throw new Error("Database save failed");
     }
 
-    const savedData = await response.json();
-    console.log("Saved to MySQL:", savedData);
+    // SAVE OR UPDATE
+    form.addEventListener("submit", async (event) => {
+        event.preventDefault();
 
-} catch (error) {
-    console.error("Backend save failed:", error);
-    showMessage("Could not save to database.", "error");
-    return;
-}
+        const studyHours = readNumber("studyHours");
+        const sleepHours = readNumber("sleepHours");
+        const activityMinutes = readNumber("activityMinutes");
+        const screenHours = readNumber("screenHours");
 
-        // Get previously saved entries
-        if (editId) {
-    showMessage("Daily entry updated successfully!", "success");
-    return;
-}
-        let entries = getEntries();
+        const values = [
+            studyHours,
+            sleepHours,
+            activityMinutes,
+            screenHours
+        ];
 
-        // Find the existing record
-        const existingIndex = entries.findIndex(
-            item => item.date === editingDate
-        );
-
-        if (editingDate && existingIndex !== -1) {
-
-            // Update the existing record
-            entries[existingIndex] = entry;
-
-        } else {
-
-            // Check whether another record already exists for this date
-            const duplicateIndex = entries.findIndex(
-                item => item.date === entry.date
+        if (
+            values.some(value =>
+                !Number.isFinite(value) || value < 0
+            )
+        ) {
+            showMessage(
+                "Please fill all activity fields with valid numbers.",
+                "error"
             );
-
-            if (duplicateIndex !== -1) {
-
-                // Update that record instead of creating a duplicate
-                entries[duplicateIndex] = entry;
-
-            } else {
-
-                // Add a new record
-                entries.push(entry);
-
-            }
+            return;
         }
 
-        // Save updated records
-        saveEntries(entries);
+        if (
+            studyHours > 24 ||
+            sleepHours > 24 ||
+            screenHours > 24 ||
+            activityMinutes > 1440
+        ) {
+            showMessage(
+                "Activity durations exceed valid limits.",
+                "error"
+            );
+            return;
+        }
 
-        // Remember the saved date
-        editingDate = entry.date;
+        if (studyHours + sleepHours + screenHours > 24) {
+            showMessage(
+                "Study, sleep and screen time cannot exceed 24 hours.",
+                "error"
+            );
+            return;
+        }
 
-        // Reset the form
-        form.reset();
+        if (!dateInput.value || dateInput.value > localDate) {
+            showMessage(
+                "Please select a valid date.",
+                "error"
+            );
+            return;
+        }
 
-        // Restore the date after resetting
-        dateInput.value = localDate;
+        const moodField = getField("mood");
+        const mood = moodField ? moodField.value : "";
+        const wellbeingScore = moodToScore[mood];
 
-        // Display success message after reset
+        if (!wellbeingScore) {
+            showMessage(
+                "Please select your mood.",
+                "error"
+            );
+            return;
+        }
+
+        const apiEntry = {
+            activityDate: dateInput.value,
+            studyHours: studyHours,
+            sleepHours: sleepHours,
+            exerciseMinutes: activityMinutes,
+            screenTimeHours: screenHours,
+            wellbeingScore: wellbeingScore
+        };
+
+        if (submitButton) {
+            submitButton.disabled = true;
+        }
+
         showMessage(
-            "Your daily entry has been saved successfully!",
-            "success"
+            isEditMode ? "Updating..." : "Saving...",
+            "info"
         );
 
-        console.log("Daily entry saved:", entry);
+        try {
+            const url = isEditMode
+                ? API_URL + "/" + encodeURIComponent(editId)
+                : API_URL;
 
+           const csrfResponse = await fetch("/api/csrf", {
+    method: "GET",
+    credentials: "same-origin"
+});
+
+if (!csrfResponse.ok) {
+    throw new Error("Unable to get CSRF token.");
+}
+
+const csrf = await csrfResponse.json();
+
+const response = await fetch(url, {
+    method: isEditMode ? "PUT" : "POST",
+    credentials: "same-origin",
+    headers: {
+        "Content-Type": "application/json",
+        [csrf.headerName]: csrf.token
+    },
+    body: JSON.stringify(apiEntry),
+    redirect: "manual"
+});
+            if (response.type === "opaqueredirect") {
+                throw new Error(
+                    "Login session expired. Please log in again."
+                );
+            }
+
+            if (!response.ok) {
+                const errorBody = await response.text();
+
+                console.error(
+                    "Backend error:",
+                    response.status,
+                    errorBody
+                );
+
+                throw new Error("HTTP " + response.status);
+            }
+
+            if (!isEditMode) {
+                form.reset();
+                dateInput.value = localDate;
+            }
+
+            showMessage(
+                isEditMode
+                    ? "Daily entry updated successfully!"
+                    : "Daily entry saved successfully!",
+                "success"
+            );
+
+            console.log(
+                isEditMode
+                    ? "Entry updated successfully."
+                    : "Entry saved successfully."
+            );
+
+        } catch (error) {
+            console.error("Save error:", error);
+
+            showMessage(
+                "Could not save to database: " + error.message,
+                "error"
+            );
+
+        } finally {
+            if (submitButton) {
+                submitButton.disabled = false;
+            }
+
+            setButtonText(
+                isEditMode ? "Update Entry" : "Save Entry"
+            );
+        }
     });
 
-    // Clear message when the user resets the form
-    form.addEventListener("reset", function () {
-
+    form.addEventListener("reset", () => {
         message.textContent = "";
         message.className = "entry-message";
-
     });
 
-    console.log("Daily Entry Page Loaded Successfully!");
-
+    console.log("Daily Entry JavaScript loaded successfully!");
 });

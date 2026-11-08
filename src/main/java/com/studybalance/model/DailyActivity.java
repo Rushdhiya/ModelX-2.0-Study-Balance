@@ -1,9 +1,18 @@
+
 package com.studybalance.model;
 
+import java.time.LocalDate;
+
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 public class DailyActivity {
@@ -11,13 +20,20 @@ public class DailyActivity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private java.time.LocalDate activityDate;
+
+    private LocalDate activityDate;
 
     private double sleepHours;
     private double studyHours;
     private int exerciseMinutes;
     private double screenTimeHours;
     private int wellbeingScore;
+
+    // Each daily activity belongs to one user
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+@JoinColumn(name = "user_id", nullable = false)
+    @JsonIgnore
+    private User user;
 
     public DailyActivity() {
     }
@@ -28,6 +44,14 @@ public class DailyActivity {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public LocalDate getActivityDate() {
+        return activityDate;
+    }
+
+    public void setActivityDate(LocalDate activityDate) {
+        this.activityDate = activityDate;
     }
 
     public double getSleepHours() {
@@ -69,11 +93,12 @@ public class DailyActivity {
     public void setWellbeingScore(int wellbeingScore) {
         this.wellbeingScore = wellbeingScore;
     }
-    public java.time.LocalDate getActivityDate() {
-    return activityDate;
-}
 
-public void setActivityDate(java.time.LocalDate activityDate) {
-    this.activityDate = activityDate;
-}
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
 }

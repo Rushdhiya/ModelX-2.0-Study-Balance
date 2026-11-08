@@ -6,9 +6,8 @@ document.addEventListener("DOMContentLoaded", function () {
     const message = document.getElementById("loginMessage");
     const forgotPassword = document.getElementById("forgotPassword");
 
-    // Show and hide password
+    // Show / hide password
     togglePassword.addEventListener("click", function () {
-
         if (passwordInput.type === "password") {
             passwordInput.type = "text";
             togglePassword.textContent = "Hide";
@@ -16,12 +15,10 @@ document.addEventListener("DOMContentLoaded", function () {
             passwordInput.type = "password";
             togglePassword.textContent = "Show";
         }
-
     });
 
-    // Login form validation
-    loginForm.addEventListener("submit", function (event) {
-
+    // Login with Spring Boot backend
+    loginForm.addEventListener("submit", async function (event) {
         event.preventDefault();
 
         const email = document.getElementById("email").value.trim();
@@ -35,23 +32,65 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
-        showMessage(
-            "Your details have been entered. Login will be enabled after backend integration.",
-            "success"
-        );
+        try {
+            // Step 1: Get CSRF token
+            const csrfResponse = await fetch("/api/csrf", {
+                method: "GET",
+                credentials: "same-origin"
+            });
 
+            if (!csrfResponse.ok) {
+                throw new Error("Failed to fetch CSRF token");
+            }
+
+            const csrf = await csrfResponse.json();
+
+            // Step 2: Login with CSRF token
+            const response = await fetch("/api/auth/login", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    [csrf.headerName]: csrf.token
+                },
+                credentials: "same-origin",
+                body: JSON.stringify({
+                    email: email,
+                    password: password
+                })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                showMessage(
+                    "Login successful! Welcome " + data.fullName,
+                    "success"
+                );
+
+                window.location.href = "/dashboard.html";
+            } else {
+                showMessage(
+                    data.message || "Invalid email or password.",
+                    "error"
+                );
+            }
+
+        } catch (error) {
+            showMessage(
+                "Cannot connect to backend. Please try again.",
+                "error"
+            );
+        }
     });
 
-    // Forgot password message
+    // Forgot password
     forgotPassword.addEventListener("click", function (event) {
-
         event.preventDefault();
 
         showMessage(
-            "Password recovery will be available after backend integration.",
+            "Password recovery is not available yet.",
             "error"
         );
-
     });
 
     function showMessage(text, type) {

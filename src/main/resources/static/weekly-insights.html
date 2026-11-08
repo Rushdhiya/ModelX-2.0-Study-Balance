@@ -28,7 +28,7 @@
 
             <div class="sidebar-bottom">
                 <a href="index.html">Back to Home</a>
-                <a href="login.html">Logout</a>
+                <a href="#" onclick="logout(event)">Logout</a>
             </div>
         </aside>
 
@@ -117,6 +117,43 @@
 
     <!-- Page JavaScript -->
     <script src="js/weekly-insights.js"></script>
+
+    <script>
+        async function logout(event) {
+            event.preventDefault();
+
+            try {
+                const csrfResponse = await fetch("/api/csrf", {
+                    method: "GET",
+                    credentials: "same-origin"
+                });
+
+                if (!csrfResponse.ok) {
+                    throw new Error("Unable to get CSRF token.");
+                }
+
+                const csrf = await csrfResponse.json();
+
+                const response = await fetch("/api/auth/logout", {
+                    method: "POST",
+                    credentials: "same-origin",
+                    headers: {
+                        [csrf.headerName]: csrf.token
+                    }
+                });
+
+                if (!response.ok) {
+                    alert("Logout failed. Please try again.");
+                    return;
+                }
+
+                window.location.replace("login.html");
+
+            } catch (error) {
+                alert("Logout failed. Please try again.");
+            }
+        }
+    </script>
 
 </body>
 </html>
