@@ -1,9 +1,10 @@
+
 document.addEventListener("DOMContentLoaded", function () {
 
     const registerForm = document.getElementById("registerForm");
     const message = document.getElementById("registerMessage");
 
-    registerForm.addEventListener("submit", function (event) {
+    registerForm.addEventListener("submit", async function (event) {
 
         event.preventDefault();
 
@@ -31,10 +32,41 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
-        showMessage(
-            "Your details are valid! Account creation will be enabled after backend integration.",
-            "success"
-        );
+        try {
+            showMessage("Creating your account...", "success");
+
+            const response = await fetch("/api/auth/register", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    fullName: fullName,
+                    email: email,
+                    password: password,
+                    confirmPassword: confirmPassword
+                })
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                showMessage(result.message, "success");
+                registerForm.reset();
+            } else {
+                showMessage(
+                    result.message || "Registration failed. Please try again.",
+                    "error"
+                );
+            }
+
+        } catch (error) {
+            showMessage(
+                "Cannot connect to the server. Please try again.",
+                "error"
+            );
+            console.error("Registration error:", error);
+        }
 
     });
 

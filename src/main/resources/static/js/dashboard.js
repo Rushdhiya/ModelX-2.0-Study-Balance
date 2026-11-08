@@ -4,6 +4,35 @@
 document.addEventListener("DOMContentLoaded", function () {
 
     // --------------------------------
+    // Display Logged-in User's Name
+    // --------------------------------
+
+    async function loadUserName() {
+        try {
+            const response = await fetch("/api/auth/me");
+
+            if (response.status === 401) {
+                window.location.href = "login.html";
+                return;
+            }
+
+            if (!response.ok) {
+                throw new Error("Unable to load user details");
+            }
+
+            const user = await response.json();
+
+            document.getElementById("dashboardUserName").textContent =
+                user.fullName;
+
+        } catch (error) {
+            console.error("Error loading user:", error);
+        }
+    }
+
+    loadUserName();
+
+    // --------------------------------
     // Display Today's Date
     // --------------------------------
 
@@ -184,5 +213,29 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
     console.log("Study Balance Dashboard Loaded Successfully!");
+
+    // Logout functionality
+    const logoutButton = document.getElementById("logoutButton");
+
+    if (logoutButton) {
+        logoutButton.addEventListener("click", async function (event) {
+            event.preventDefault();
+
+        try {
+            const response = await fetch("/api/auth/logout", {
+                method: "POST"
+            });
+
+            if (response.ok) {
+                localStorage.clear();
+                window.location.href = "login.html";
+            } else {
+                alert("Logout failed. Please try again.");
+            }
+        } catch (error) {
+            alert("Unable to connect to the server.");
+        }
+    });
+}
 
 });

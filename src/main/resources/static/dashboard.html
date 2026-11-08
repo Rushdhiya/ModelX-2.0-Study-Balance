@@ -28,9 +28,10 @@
 
             <div class="sidebar-bottom">
                 <a href="index.html">Back to Home</a>
-                <a href="login.html">Logout</a>
+                <a href="#" id="logoutButton">Logout</a>
             </div>
         </aside>
+
 
         <!-- Main Content -->
         <main class="dashboard-main">
@@ -39,7 +40,7 @@
             <header class="dashboard-header">
                 <div>
                     <p class="dashboard-date" id="currentDate"></p>
-                    <h1>Welcome Back! 👋</h1>
+                    <h1>Welcome Back, <span id="dashboardUserName">Student</span>! 👋</h1>
                     <p class="dashboard-subtitle">
                         Let's check how well you are balancing your day.
                     </p>
@@ -179,6 +180,10 @@
         </main>
     </div>
 
+
     <script src="js/dashboard.js"></script>
+
+    
 </body>
 </html>
+
